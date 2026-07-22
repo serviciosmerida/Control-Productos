@@ -4,8 +4,15 @@
   "icons": [
     {
       "src": "impologo.jpg",
+      "sizes": "192x192",
       "type": "image/jpeg",
-      "sizes": "192x192 512x512"
+      "purpose": "any maskable"
+    },
+    {
+      "src": "impologo.jpg",
+      "sizes": "512x512",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
     }
   ],
   "start_url": "./index.html",
