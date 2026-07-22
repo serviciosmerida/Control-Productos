@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Registro de Venta · Control de Ventas</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --black:#1A1A1A; --cream:#F7F5F0; --gray-light:#EEECE8; --gray-mid:#D5D2CB;
+    --gray-text:#888580; --olive:#4A5240; --olive-light:#EFF1EB;
+    --amber:#B03A2E; --red:#B03A2E; --green:#2E7D32; --blue:#1F5C9E;
+  }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:'Inter',sans-serif; background:var(--cream); color:var(--black); padding-bottom:2rem; }
+
+  .topbar {
+    background:var(--black); color:#fff; padding:1rem 1.25rem;
+    position:sticky; top:0; z-index:10;
+  }
+  .topbar-brand { font-family:'Bebas Neue',sans-serif; font-size:1.3rem; letter-spacing:2px; }
+  .topbar-brand span { color:var(--amber); }
+  .topbar-sub { font-size:.7rem; color:#aaa; text-transform:uppercase; letter-spacing:1px; margin-top:2px; }
+
+  .form-wrap { padding:1.25rem; max-width:520px; margin:0 auto; }
+
+  .group {
+    background:#fff; border-radius:14px; border:1.5px solid var(--gray-light);
+    padding:1.1rem; margin-bottom:1rem;
+  }
+  .group-title {
+    font-size:.68rem; text-transform:uppercase; letter-spacing:1.5px;
+    color:var(--olive); font-weight:700; margin-bottom:.85rem;
+    display:flex; align-items:center; justify-content:space-between;
+  }
+
+  .field { margin-bottom:.9rem; }
+  .field:last-child { margin-bottom:0; }
+  .field label {
+    display:block; font-size:.78rem; font-weight:600;
+    color:var(--black); margin-bottom:.35rem;
+  }
+  .field input, .field select, .field textarea {
+    width:100%; padding:.7rem .85rem; border-radius:10px;
+    border:1.5px solid var(--gray-mid); font-size:.95rem;
+    font-family:'Inter',sans-serif; background:#fff; color:var(--black);
+    -webkit-appearance:none; appearance:none;
+  }
+  .field input:focus, .field select:focus, .field textarea:focus {
+    outline:none; border-color:var(--olive);
+  }
+  .field textarea { resize:vertical; min-height:60px; }
+
+  .row2 { display:grid; grid-template-columns:1fr 1fr; gap:.7rem; }
+  .row3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:.7rem; }
+
+  select { background-image:url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23888580' stroke-width='2'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat:no-repeat; background-position:right .75rem center; background-size:18px; padding-right:2.2rem; }
+
+  /* Producto stepper cards */
+  .prod-card {
+    border:1.5px solid var(--gray-light); border-radius:12px; padding:.8rem .9rem;
+    margin-bottom:.7rem; display:flex; align-items:center; justify-content:space-between; gap:.6rem;
+  }
+  .prod-card:last-child { margin-bottom:0; }
+  .prod-info { flex:1; min-width:0; }
+  .prod-name { font-weight:700; font-size:.9rem; }
+  .prod-price { font-size:.72rem; color:var(--gray-text); margin-top:2px; }
+  .prod-stock { font-size:.68rem; color:var(--olive); font-weight:600; margin-top:2px; }
+  .prod-stock.low { color:var(--red); }
+  .stepper { display:flex; align-items:center; gap:.5rem; }
+  .stepper button {
+    width:32px; height:32px; border-radius:8px; border:1.5px solid var(--gray-mid);
+    background:var(--olive-light); color:var(--olive); font-size:1.1rem; font-weight:700;
+    cursor:pointer; display:flex; align-items:center; justify-content:center; line-height:1;
+  }
+  .stepper button:active { background:var(--olive); color:#fff; }
+  .stepper input {
+    width:42px; text-align:center; border:none; font-size:1rem; font-weight:700;
+    padding:.3rem 0; background:transparent;
+  }
+  .rebaja-toggle {
+    display:flex; align-items:center; gap:.4rem; font-size:.72rem; color:var(--amber);
+    font-weight:600; margin-top:.3rem; cursor:pointer; user-select:none;
+  }
+  .rebaja-toggle input { width:auto; accent-color:var(--amber); }
+
+  .summary-row {
+    display:flex; justify-content:space-between; align-items:center;
+    font-size:.88rem; padding:.4rem 0; border-bottom:1px dashed var(--gray-light);
+  }
+  .summary-row:last-of-type { border-bottom:none; }
+  .summary-row.total { font-weight:700; font-size:1.05rem; padding-top:.6rem; margin-top:.2rem; border-top:1.5px solid var(--gray-mid); border-bottom:none; }
+  .summary-label { color:var(--gray-text); }
+  .summary-row.total .summary-label { color:var(--black); }
+
+  .pago-toggle { display:flex; gap:.6rem; }
+  .pago-toggle label {
+    flex:1; text-align:center; padding:.7rem; border-radius:10px;
+    border:1.5px solid var(--gray-mid); font-size:.85rem; font-weight:700;
+    cursor:pointer; color:var(--gray-text);
+  }
+  .pago-toggle input { display:none; }
+  .pago-toggle input:checked + span { color:#fff; }
+  .pago-toggle .opt-pagado input:checked ~ label,
+  .pago-toggle label.pagado.active { background:var(--green); border-color:var(--green); color:#fff; }
+  .pago-toggle label.no-pagado.active { background:var(--red); border-color:var(--red); color:#fff; }
+
+  .btn-guardar {
+    width:100%; background:var(--olive); color:#fff; border:none;
+    border-radius:12px; padding:1rem; font-size:1rem; font-weight:700;
+    cursor:pointer; margin-top:.5rem; transition:background .15s;
+  }
+  .btn-guardar:active { background:#3a4132; }
+  .btn-guardar:disabled { background:var(--gray-mid); cursor:not-allowed; }
+
+  .btn-limpiar {
+    width:100%; background:transparent; color:var(--gray-text);
+    border:1.5px solid var(--gray-mid); border-radius:12px; padding:.7rem;
+    font-size:.85rem; font-weight:600; cursor:pointer; margin-top:.6rem;
+  }
+
+  .toast {
+    position:fixed; bottom:1.5rem; left:50%; transform:translateX(-50%) translateY(100px);
+    background:var(--green); color:#fff; padding:.85rem 1.5rem; border-radius:12px;
+    font-size:.88rem; font-weight:600; transition:transform .25s;
+    box-shadow:0 8px 24px rgba(0,0,0,.2); z-index:50; max-width:90%; text-align:center;
+  }
+  .toast.show { transform:translateX(-50%) translateY(0); }
+  .toast.error { background:var(--red); }
+
+  .req { color:var(--red); }
+
+  .refresh-link { font-size:.65rem; color:var(--gray-text); text-transform:none; letter-spacing:0; cursor:pointer; text-decoration:underline; font-weight:500; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-brand">Control de <span>Ventas</span></div>
+  <div class="topbar-sub">Registro de venta · Fajas, Coleras y Gemelas</div>
+</div>
+
+<form class="form-wrap" id="form">
+
+  <div class="group">
+    <div class="group-title">Datos del cliente</div>
+    <div class="field">
+      <label>Nombre Cliente <span class="req">*</span></label>
+      <input type="text" id="cliente" required placeholder="Nombre completo">
+    </div>
+    <div class="field">
+      <label>Dirección de Envío <span class="req">*</span></label>
+      <textarea id="direccion" required placeholder="Dirección completa"></textarea>
+    </div>
+  </div>
+
+  <div class="group">
+    <div class="group-title">
+      Productos
+      <span class="refresh-link" id="refreshStock">↻ actualizar stock</span>
+    </div>
+
+    <div class="prod-card">
+      <div class="prod-info">
+        <div class="prod-name">Coleras</div>
+        <div class="prod-price" id="precioColeras">Q450.00 c/u</div>
+        <div class="prod-stock" id="stockColeras">Consultando stock...</div>
+        <label class="rebaja-toggle">
+          <input type="checkbox" id="rebajaColeras"> Aplicar rebaja (Q400.00)
+        </label>
+      </div>
+      <div class="stepper">
+        <button type="button" data-target="coleras" data-delta="-1">−</button>
+        <input type="number" id="coleras" value="0" min="0" readonly>
+        <button type="button" data-target="coleras" data-delta="1">+</button>
+      </div>
+    </div>
+
+    <div class="prod-card">
+      <div class="prod-info">
+        <div class="prod-name">Gemelas</div>
+        <div class="prod-price" id="precioGemelas">Q850.00 c/u</div>
+        <div class="prod-stock" id="stockGemelas">Consultando stock...</div>
+        <label class="rebaja-toggle">
+          <input type="checkbox" id="rebajaGemelas"> Aplicar rebaja (Q800.00)
+        </label>
+      </div>
+      <div class="stepper">
+        <button type="button" data-target="gemelas" data-delta="-1">−</button>
+        <input type="number" id="gemelas" value="0" min="0" readonly>
+        <button type="button" data-target="gemelas" data-delta="1">+</button>
+      </div>
+    </div>
+
+    <div class="prod-card">
+      <div class="prod-info">
+        <div class="prod-name">Fajas</div>
+        <div class="prod-price" id="precioFajas">Q125.00 c/u</div>
+        <div class="prod-stock" id="stockFajas">Consultando stock...</div>
+        <label class="rebaja-toggle">
+          <input type="checkbox" id="rebajaFajas"> Aplicar rebaja (Q100.00)
+        </label>
+      </div>
+      <div class="stepper">
+        <button type="button" data-target="fajas" data-delta="-1">−</button>
+        <input type="number" id="fajas" value="0" min="0" readonly>
+        <button type="button" data-target="fajas" data-delta="1">+</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="group">
+    <div class="group-title">Envío y total</div>
+    <div class="field">
+      <label>Envío (Q)</label>
+      <input type="number" id="envio" step="0.01" value="0">
+    </div>
+    <div class="summary-row">
+      <span class="summary-label">Total sin envío</span>
+      <span id="sumSinEnvio">Q0.00</span>
+    </div>
+    <div class="summary-row">
+      <span class="summary-label">Envío</span>
+      <span id="sumEnvio">Q0.00</span>
+    </div>
+    <div class="summary-row total">
+      <span class="summary-label">Total</span>
+      <span id="sumTotal">Q0.00</span>
+    </div>
+  </div>
+
+  <div class="group">
+    <div class="group-title">Pago y entrega</div>
+    <div class="field">
+      <label>Estado de pago <span class="req">*</span></label>
+      <div class="pago-toggle" id="pagoToggle">
+        <label class="no-pagado active" data-value="No Pagado">No Pagado</label>
+        <label class="pagado" data-value="Pagado">Pagado</label>
+      </div>
+      <input type="hidden" id="estadoPago" value="No Pagado">
+    </div>
+    <div class="field">
+      <label>Fecha de entrega</label>
+      <input type="date" id="fechaEntrega">
+    </div>
+    <div class="field">
+      <label>Notas</label>
+      <textarea id="notas" placeholder="Opcional"></textarea>
+    </div>
+  </div>
+
+  <button type="submit" class="btn-guardar" id="btnGuardar">💾 Guardar venta</button>
+  <button type="button" class="btn-limpiar" id="btnLimpiar">Limpiar formulario</button>
+
+</form>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ⚠️ Reemplaza esta URL con la de tu Web App publicada (ver instrucciones en Code.gs)
+const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbzK8lBiyd_qDzRmd7pAurEfBywUuly30jqG4sWy5IGFACmBLvvCW1lRomvTrdCDM1li/exec';
+
+const PRECIOS = {
+  coleras: { normal: 450.00, rebaja: 400.00 },
+  gemelas: { normal: 850.00, rebaja: 800.00 },
+  fajas:   { normal: 125.00, rebaja: 100.00 }
+};
+
+const form = document.getElementById('form');
+const btnGuardar = document.getElementById('btnGuardar');
+const toast = document.getElementById('toast');
+
+function showToast(msg, isError) {
+  toast.textContent = msg;
+  toast.className = 'toast show' + (isError ? ' error' : '');
+  setTimeout(() => toast.classList.remove('show'), 3500);
+}
+
+// --- Steppers ---
+document.querySelectorAll('.stepper button').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const target = btn.dataset.target;
+    const delta = parseInt(btn.dataset.delta);
+    const input = document.getElementById(target);
+    let val = parseInt(input.value) || 0;
+    val = Math.max(0, val + delta);
+    input.value = val;
+    calcularTotales();
+  });
+});
+
+document.getElementById('rebajaColeras').addEventListener('change', calcularTotales);
+document.getElementById('rebajaGemelas').addEventListener('change', calcularTotales);
+document.getElementById('rebajaFajas').addEventListener('change', calcularTotales);
+document.getElementById('envio').addEventListener('input', calcularTotales);
+
+function precioUnit(producto) {
+  const rebajaChecked = document.getElementById('rebaja' + capitalize(producto)).checked;
+  return rebajaChecked ? PRECIOS[producto].rebaja : PRECIOS[producto].normal;
+}
+function capitalize(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+
+function calcularTotales() {
+  let sinEnvio = 0;
+  ['coleras','gemelas','fajas'].forEach(p => {
+    const cant = parseInt(document.getElementById(p).value) || 0;
+    sinEnvio += cant * precioUnit(p);
+  });
+  const envio = parseFloat(document.getElementById('envio').value) || 0;
+  const total = sinEnvio + envio;
+
+  document.getElementById('sumSinEnvio').textContent = 'Q' + sinEnvio.toFixed(2);
+  document.getElementById('sumEnvio').textContent = 'Q' + envio.toFixed(2);
+  document.getElementById('sumTotal').textContent = 'Q' + total.toFixed(2);
+}
+
+// --- Toggle Pagado / No Pagado ---
+document.querySelectorAll('#pagoToggle label').forEach(label => {
+  label.addEventListener('click', () => {
+    document.querySelectorAll('#pagoToggle label').forEach(l => l.classList.remove('active'));
+    label.classList.add('active');
+    document.getElementById('estadoPago').value = label.dataset.value;
+  });
+});
+
+// --- Consultar stock desde Google Sheets ---
+async function cargarStock() {
+  if (WEB_APP_URL.includes('PEGAR_AQUI')) {
+    document.getElementById('stockColeras').textContent = '⚠ Configura WEB_APP_URL';
+    document.getElementById('stockGemelas').textContent = '⚠ Configura WEB_APP_URL';
+    document.getElementById('stockFajas').textContent = '⚠ Configura WEB_APP_URL';
+    return;
+  }
+  try {
+    const resp = await fetch(WEB_APP_URL);
+    const result = await resp.json();
+    if (result.ok) {
+      const inv = result.inventario;
+      setStock('stockColeras', inv['Coleras']);
+      setStock('stockGemelas', inv['Gemelas']);
+      setStock('stockFajas', inv['Fajas']);
+    }
+  } catch (err) {
+    document.getElementById('stockColeras').textContent = 'No se pudo cargar stock';
+    document.getElementById('stockGemelas').textContent = 'No se pudo cargar stock';
+    document.getElementById('stockFajas').textContent = 'No se pudo cargar stock';
+  }
+}
+
+function setStock(elId, data) {
+  const el = document.getElementById(elId);
+  if (!data) { el.textContent = 'Sin datos'; return; }
+  el.textContent = `Disponibles: ${data.stock}`;
+  el.classList.toggle('low', data.stock <= 3);
+}
+
+document.getElementById('refreshStock').addEventListener('click', cargarStock);
+
+// --- Limpiar formulario ---
+function limpiarFormulario() {
+  form.reset();
+  ['coleras','gemelas','fajas'].forEach(p => document.getElementById(p).value = 0);
+  document.querySelectorAll('#pagoToggle label').forEach(l => l.classList.remove('active'));
+  document.querySelector('.no-pagado').classList.add('active');
+  document.getElementById('estadoPago').value = 'No Pagado';
+  calcularTotales();
+}
+document.getElementById('btnLimpiar').addEventListener('click', limpiarFormulario);
+
+// --- Submit ---
+form.addEventListener('submit', async (e) => {
+  e.preventDefault();
+
+  const coleras = parseInt(document.getElementById('coleras').value) || 0;
+  const gemelas = parseInt(document.getElementById('gemelas').value) || 0;
+  const fajas = parseInt(document.getElementById('fajas').value) || 0;
+
+  if (coleras + gemelas + fajas === 0) {
+    showToast('⚠ Agrega al menos un producto.', true);
+    return;
+  }
+
+  const sinEnvio = coleras * precioUnit('coleras') + gemelas * precioUnit('gemelas') + fajas * precioUnit('fajas');
+  const envio = parseFloat(document.getElementById('envio').value) || 0;
+  const total = sinEnvio + envio;
+
+  const data = {
+    cliente: document.getElementById('cliente').value,
+    direccion: document.getElementById('direccion').value,
+    coleras, gemelas, fajas,
+    totalSinEnvio: sinEnvio,
+    envio: envio,
+    total: total,
+    estadoPago: document.getElementById('estadoPago').value,
+    fechaEntrega: document.getElementById('fechaEntrega').value,
+    notas: document.getElementById('notas').value
+  };
+
+  if (WEB_APP_URL.includes('PEGAR_AQUI')) {
+    showToast('⚠ Falta configurar la URL del Web App en el código.', true);
+    return;
+  }
+
+  btnGuardar.disabled = true;
+  btnGuardar.textContent = 'Guardando...';
+
+  try {
+    const resp = await fetch(WEB_APP_URL, {
+      method: 'POST',
+      body: JSON.stringify(data),
+      headers: { 'Content-Type': 'text/plain' } // evita preflight CORS
+    });
+    const result = await resp.json();
+
+    if (result.ok) {
+      showToast('✅ Venta guardada correctamente.');
+      limpiarFormulario();
+      cargarStock();
+    } else {
+      showToast('⚠ Error: ' + (result.error || 'Desconocido'), true);
+    }
+  } catch (err) {
+    showToast('⚠ No se pudo conectar. Revisa tu internet.', true);
+  } finally {
+    btnGuardar.disabled = false;
+    btnGuardar.textContent = '💾 Guardar venta';
+  }
+});
+
+// Init
+calcularTotales();
+cargarStock();
+</script>
+</body>
+</html>
