@@ -1,0 +1,16 @@
+{
+  "short_name": "ControlVentas",
+  "name": "Control de Ventas - Servicios Mérida",
+  "icons": [
+    {
+      "src": "impologo.jpg",
+      "type": "image/jpeg",
+      "sizes": "192x192 512x512"
+    }
+  ],
+  "start_url": "./indexproducto.html",
+  "background_color": "#F7F5F0",
+  "theme_color": "#1A1A1A",
+  "display": "standalone",
+  "orientation": "portrait"
+}
