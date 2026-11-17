@@ -16,7 +16,6 @@
   * { box-sizing: border-box; }
   body { margin:0; font-family: 'Montserrat', system-ui, -apple-system, "Segoe UI", sans-serif; background:var(--bg); color:var(--txt); }
   header { padding:16px 20px; font-weight:700; font-size:18px; background:var(--pri); color:#fff; display:flex; justify-content:space-between; align-items:center; }
-  header button.sec { color:#fff; border-color:#fff; }
   .brand { display:flex; align-items:center; gap:12px; }
   .logo { height:44px; width:auto; max-width:140px; object-fit:contain; background:#fff; border-radius:8px; padding:4px 8px; }
   main { max-width:1000px; margin:0 auto; padding:16px; display:grid; gap:16px; grid-template-columns:1fr; }
@@ -30,25 +29,28 @@
   button:hover { background:var(--pri-d); }
   button.sec { background:transparent; color:var(--pri); border:1px solid var(--pri); }
   button.sec:hover { background:var(--soft); }
-  header button.sec:hover { background:rgba(255,255,255,.15); }
   button.del { background:transparent; color:var(--pri); border:none; width:auto; padding:4px 8px; }
   button.del:hover { background:var(--soft); }
   button:disabled { opacity:.5; cursor:not-allowed; }
-  .row { display:flex; gap:8px; } .row > * { flex:1; } .row .w80 { flex:0 0 90px; }
+  .row { display:flex; gap:8px; } .row > * { flex:1; min-width:0; }
   table { width:100%; border-collapse:collapse; font-size:14px; }
-  th, td { text-align:left; padding:8px 6px; border-bottom:1px solid var(--bd); }
+  th, td { text-align:left; padding:8px 6px; border-bottom:1px solid var(--bd); vertical-align:top; }
   th { color:#fff; background:var(--pri); font-weight:600; font-size:12px; text-transform:uppercase; }
   tbody tr:nth-child(even) { background:var(--soft); }
   td.n, th.n { text-align:right; }
-  .tag { padding:2px 8px; border-radius:99px; font-size:12px; font-weight:600; }
+  .tag { display:inline-block; padding:2px 8px; border-radius:99px; font-size:12px; font-weight:600; }
   .t-ok { background:#e6f4ea; color:var(--ok); }
   .t-low { background:#fff3d6; color:var(--warn); }
   .t-out { background:var(--pri); color:#fff; }
+  #totales { margin-top:10px; padding:10px 12px; background:var(--soft); border-radius:8px; font-size:14px; }
+  #totales div { display:flex; justify-content:space-between; padding:2px 0; }
+  #totales .total { font-weight:700; color:var(--pri); border-top:1px solid var(--bd); margin-top:4px; padding-top:6px; font-size:16px; }
   #msg { padding:10px 12px; border-radius:8px; margin-top:12px; display:none; font-size:14px; }
   #msg.ok { display:block; background:#e6f4ea; color:var(--ok); }
   #msg.err { display:block; background:var(--soft); color:var(--pri-d); }
   .scroll { overflow-x:auto; }
   .mut { color:var(--mut); font-size:13px; }
+  .small { color:var(--mut); font-size:12px; display:block; }
 </style>
 </head>
 <body>
@@ -59,21 +61,55 @@
 <main>
   <section class="card">
     <h2>Registrar venta</h2>
+
     <label>Producto</label>
+    <select id="selProducto"></select>
     <div class="row">
-      <select id="selProducto"></select>
-      <input id="inCantidad" class="w80" type="number" min="1" step="1" value="1">
+      <div>
+        <label>Cantidad</label>
+        <input id="inCantidad" type="number" min="1" step="1" value="1">
+      </div>
+      <div>
+        <label>Monto vendido (Q)</label>
+        <input id="inMonto" type="number" min="0" step="0.01" placeholder="0.00">
+      </div>
     </div>
     <button class="sec" style="margin-top:8px" onclick="agregarLinea()">+ Agregar a la venta</button>
 
     <div class="scroll" style="margin-top:12px">
-      <table id="tblCarrito"><thead><tr><th>Producto</th><th class="n">Cant.</th><th></th></tr></thead><tbody></tbody></table>
+      <table id="tblCarrito"><thead><tr><th>Producto</th><th class="n">Cant.</th><th class="n">Monto</th><th></th></tr></thead><tbody></tbody></table>
     </div>
 
     <label>Cliente (opcional)</label>
     <input id="inCliente" type="text" placeholder="Nombre del cliente">
+
+    <label>Dirección del cliente</label>
+    <textarea id="inDireccion" rows="2" placeholder="Dirección de entrega"></textarea>
+
+    <label>Costo de envío (Q)</label>
+    <input id="inEnvio" type="number" min="0" step="0.01" placeholder="0.00" oninput="pintarTotales()">
+
+    <div class="row">
+      <div>
+        <label>Método de pago</label>
+        <select id="selMetodo">
+          <option>Efectivo</option>
+          <option>Transferencia</option>
+        </select>
+      </div>
+      <div>
+        <label>Estado de pago</label>
+        <select id="selEstado">
+          <option>Pagado</option>
+          <option>Pendiente</option>
+        </select>
+      </div>
+    </div>
+
     <label>Notas (opcional)</label>
     <textarea id="inNotas" rows="2"></textarea>
+
+    <div id="totales"></div>
 
     <button id="btnVender" style="margin-top:12px" onclick="registrarVenta()">Registrar venta</button>
     <div id="msg"></div>
@@ -91,14 +127,13 @@
   <section class="card full">
     <h2>Últimas ventas</h2>
     <div class="scroll">
-      <table id="tblVentas"><thead><tr><th>Fecha</th><th>Producto</th><th class="n">Cant.</th><th>Cliente</th><th>Notas</th><th class="n">Stock restante</th></tr></thead><tbody></tbody></table>
+      <table id="tblVentas"><thead><tr><th>Fecha</th><th>Producto</th><th class="n">Cant.</th><th class="n">Monto</th><th class="n">Envío</th><th>Cliente</th><th>Pago</th></tr></thead><tbody></tbody></table>
     </div>
   </section>
 </main>
 
 <script>
-/* ================== CONFIGURACIÓN ==================
-   Pega aquí la URL de tu Web App de Apps Script (termina en /exec) */
+/* ================== CONFIGURACIÓN ================== */
 const API_URL = 'https://script.google.com/macros/s/AKfycbzDUJewSLKzBBIdbJHlLFAaLsVIrnTBt3ACHAsvmFp_BaL6aKFYmBWd3VszcSzCLGrx/exec';
 const STOCK_BAJO = 5; // por debajo o igual a este número se marca "Bajo"
 /* =================================================== */
@@ -108,6 +143,7 @@ let carrito = [];
 
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const q = (n) => 'Q' + Number(n || 0).toLocaleString('es-GT', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
 function mostrar(texto, tipo) {
   const m = $('msg'); m.textContent = texto; m.className = tipo;
@@ -151,25 +187,39 @@ function pintarInventario() {
 }
 
 function pintarVentas(ventas) {
-  $('tblVentas').tBodies[0].innerHTML = (ventas.length ? ventas : []).map(v => {
+  $('tblVentas').tBodies[0].innerHTML = ventas.map(v => {
     const f = new Date(v.fecha);
-    const fecha = isNaN(f) ? esc(v.fecha) : f.toLocaleString('es-GT');
-    return `<tr><td>${fecha}</td><td>${esc(v.producto)}</td><td class="n">${esc(v.cantidad)}</td><td>${esc(v.cliente)}</td><td>${esc(v.notas)}</td><td class="n">${esc(v.stock)}</td></tr>`;
-  }).join('') || '<tr><td colspan="6" class="mut">Aún no hay ventas registradas.</td></tr>';
+    const fecha = isNaN(f) ? esc(v.fecha) : f.toLocaleString('es-GT', { dateStyle: 'short', timeStyle: 'short' });
+    const envio = v.envio === '' || v.envio == null ? '' : q(v.envio);
+    const dir = v.direccion ? `<span class="small">${esc(v.direccion)}</span>` : '';
+    const estadoCls = v.estadoPago === 'Pendiente' ? 't-low' : 't-ok';
+    return `<tr>
+      <td>${fecha}</td>
+      <td>${esc(v.producto)}</td>
+      <td class="n">${esc(v.cantidad)}</td>
+      <td class="n">${q(v.monto)}</td>
+      <td class="n">${envio}</td>
+      <td>${esc(v.cliente)}${dir}</td>
+      <td>${esc(v.metodoPago)}<span class="small"><span class="tag ${estadoCls}">${esc(v.estadoPago)}</span></span></td>
+    </tr>`;
+  }).join('') || '<tr><td colspan="7" class="mut">Aún no hay ventas registradas.</td></tr>';
 }
 
 function agregarLinea() {
   const producto = $('selProducto').value;
   const cantidad = parseInt($('inCantidad').value, 10);
+  const monto = parseFloat($('inMonto').value);
   if (!producto || !(cantidad > 0)) return mostrar('Elige un producto y una cantidad válida', 'err');
+  if (isNaN(monto) || monto < 0) return mostrar('Escribe el monto vendido de este producto', 'err');
 
   const item = inventario.find(i => i.producto === producto);
   const yaEnCarrito = carrito.filter(c => c.producto === producto).reduce((s, c) => s + c.cantidad, 0);
   if (item && yaEnCarrito + cantidad > item.cantidad) {
     return mostrar(`Stock insuficiente de ${producto} (hay ${item.cantidad})`, 'err');
   }
-  carrito.push({ producto, cantidad });
+  carrito.push({ producto, cantidad, monto });
   $('inCantidad').value = 1;
+  $('inMonto').value = '';
   $('msg').style.display = 'none';
   pintarCarrito();
 }
@@ -178,12 +228,26 @@ function quitarLinea(i) { carrito.splice(i, 1); pintarCarrito(); }
 
 function pintarCarrito() {
   $('tblCarrito').tBodies[0].innerHTML = carrito.map((c, i) =>
-    `<tr><td>${esc(c.producto)}</td><td class="n">${c.cantidad}</td><td><button class="del" onclick="quitarLinea(${i})">✕</button></td></tr>`
-  ).join('') || '<tr><td colspan="3" class="mut">Sin productos agregados.</td></tr>';
+    `<tr><td>${esc(c.producto)}</td><td class="n">${c.cantidad}</td><td class="n">${q(c.monto)}</td><td><button class="del" onclick="quitarLinea(${i})">✕</button></td></tr>`
+  ).join('') || '<tr><td colspan="4" class="mut">Sin productos agregados.</td></tr>';
+  pintarTotales();
+}
+
+function pintarTotales() {
+  const productos = carrito.reduce((s, c) => s + c.monto, 0);
+  const envio = parseFloat($('inEnvio').value) || 0;
+  $('totales').innerHTML =
+    `<div><span>Productos</span><span>${q(productos)}</span></div>` +
+    `<div><span>Envío</span><span>${q(envio)}</span></div>` +
+    `<div class="total"><span>Total a cobrar</span><span>${q(productos + envio)}</span></div>`;
 }
 
 async function registrarVenta() {
   if (!carrito.length) return mostrar('Agrega al menos un producto', 'err');
+  const envioTxt = $('inEnvio').value.trim();
+  const envio = envioTxt === '' ? 0 : parseFloat(envioTxt);
+  if (isNaN(envio) || envio < 0) return mostrar('El costo de envío no es válido', 'err');
+
   const btn = $('btnVender');
   btn.disabled = true; btn.textContent = 'Guardando...';
   try {
@@ -192,13 +256,18 @@ async function registrarVenta() {
       headers: { 'Content-Type': 'text/plain;charset=utf-8' }, // evita preflight CORS en Apps Script
       body: JSON.stringify({
         cliente: $('inCliente').value.trim(),
+        direccion: $('inDireccion').value.trim(),
+        envio: envio,
+        metodoPago: $('selMetodo').value,
+        estadoPago: $('selEstado').value,
         notas: $('inNotas').value.trim(),
         items: carrito
       })
     });
     inventario = data.inventario;
     carrito = [];
-    $('inCliente').value = ''; $('inNotas').value = '';
+    $('inCliente').value = ''; $('inDireccion').value = ''; $('inEnvio').value = ''; $('inNotas').value = '';
+    $('selMetodo').value = 'Efectivo'; $('selEstado').value = 'Pagado';
     pintarCarrito(); pintarInventario();
     mostrar('✔ Venta registrada e inventario actualizado', 'ok');
     cargarTodo();
