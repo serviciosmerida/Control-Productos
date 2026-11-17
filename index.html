@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Control de Inventario</title>
 <link rel="icon" type="image/png" href="producto.png">
 <link rel="apple-touch-icon" href="producto.png">
@@ -12,45 +12,87 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-  :root { --bg:#ffffff; --card:#ffffff; --txt:#2a1215; --mut:#7a5c60; --pri:#c8102e; --pri-d:#9e0c24; --soft:#fdecee; --ok:#1a7f37; --warn:#b26a00; --bad:#c8102e; --bd:#f0d3d7; }
+  :root { --bg:#fff7f7; --card:#ffffff; --txt:#2a1215; --mut:#7a5c60; --pri:#c8102e; --pri-d:#9e0c24; --soft:#fdecee; --ok:#1a7f37; --warn:#b26a00; --bd:#f0d3d7; --radius:14px; }
   * { box-sizing: border-box; }
-  body { margin:0; font-family: 'Montserrat', system-ui, -apple-system, "Segoe UI", sans-serif; background:var(--bg); color:var(--txt); }
-  header { padding:16px 20px; font-weight:700; font-size:18px; background:var(--pri); color:#fff; display:flex; justify-content:space-between; align-items:center; }
-  .brand { display:flex; align-items:center; gap:12px; }
-  .logo { height:44px; width:auto; max-width:140px; object-fit:contain; background:#fff; border-radius:8px; padding:4px 8px; }
-  main { max-width:1000px; margin:0 auto; padding:16px; display:grid; gap:16px; grid-template-columns:1fr; }
-  @media (min-width:860px) { main { grid-template-columns: 1fr 1fr; } .full { grid-column:1 / -1; } }
-  .card { background:var(--card); border:1px solid var(--bd); border-top:4px solid var(--pri); border-radius:12px; padding:16px; box-shadow:0 2px 8px rgba(200,16,46,.06); }
-  h2 { margin:0 0 12px; font-size:16px; color:var(--pri); }
-  label { display:block; font-size:13px; color:var(--mut); margin:10px 0 4px; font-weight:500; }
-  input, select, textarea, button { font:inherit; width:100%; padding:10px; border-radius:8px; border:1px solid var(--bd); background:#fff; color:var(--txt); }
-  input:focus, select:focus, textarea:focus { outline:2px solid var(--pri); outline-offset:0; }
-  button { cursor:pointer; background:var(--pri); color:#fff; border:none; font-weight:600; }
+  html { -webkit-text-size-adjust:100%; }
+  body { margin:0; font-family:'Montserrat', system-ui, -apple-system, "Segoe UI", sans-serif; background:var(--bg); color:var(--txt); line-height:1.4; padding-bottom:env(safe-area-inset-bottom); }
+
+  /* ---------- Encabezado ---------- */
+  header { position:sticky; top:0; z-index:10; background:var(--pri); color:#fff; box-shadow:0 2px 10px rgba(158,12,36,.25);
+           padding:12px 20px; padding-top:calc(12px + env(safe-area-inset-top)); padding-left:calc(20px + env(safe-area-inset-left)); padding-right:calc(20px + env(safe-area-inset-right)); }
+  .brand { display:flex; align-items:center; gap:12px; font-weight:700; font-size:18px; max-width:1120px; margin:0 auto; }
+  .logo { height:42px; width:auto; max-width:130px; object-fit:contain; background:#fff; border-radius:10px; padding:4px 8px; flex:0 0 auto; }
+
+  /* ---------- Distribución ---------- */
+  main { max-width:1120px; margin:0 auto; padding:16px; display:grid; gap:16px; grid-template-columns:minmax(0,1fr); }
+  .card { background:var(--card); border:1px solid var(--bd); border-top:4px solid var(--pri); border-radius:var(--radius); padding:16px; box-shadow:0 2px 10px rgba(200,16,46,.07); min-width:0; }
+  @media (min-width:900px) {
+    main { padding:24px; gap:24px; grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr); align-items:start; }
+    .full { grid-column:1 / -1; }
+    .sticky { position:sticky; top:88px; }
+    .card { padding:22px; }
+  }
+  h2 { margin:0 0 14px; font-size:17px; color:var(--pri); }
+
+  /* ---------- Formularios ---------- */
+  label { display:block; font-size:13px; color:var(--mut); margin:12px 0 5px; font-weight:600; }
+  input, select, textarea, button { font:inherit; font-size:16px; width:100%; padding:11px 12px; min-height:44px; border-radius:10px; border:1px solid var(--bd); background:#fff; color:var(--txt); }
+  textarea { resize:vertical; }
+  input:focus, select:focus, textarea:focus { outline:2px solid var(--pri); outline-offset:0; border-color:var(--pri); }
+  button { cursor:pointer; background:var(--pri); color:#fff; border:none; font-weight:600; transition:background .15s; }
   button:hover { background:var(--pri-d); }
-  button.sec { background:transparent; color:var(--pri); border:1px solid var(--pri); }
+  button.sec { background:transparent; color:var(--pri); border:1.5px solid var(--pri); }
   button.sec:hover { background:var(--soft); }
-  button.del { background:transparent; color:var(--pri); border:none; width:auto; padding:4px 8px; }
+  button.del { background:transparent; color:var(--pri); border:none; width:auto; min-height:36px; padding:4px 10px; }
   button.del:hover { background:var(--soft); }
   button:disabled { opacity:.5; cursor:not-allowed; }
-  .row { display:flex; gap:8px; } .row > * { flex:1; min-width:0; }
+  #btnVender { font-size:17px; min-height:50px; }
+  .row { display:flex; gap:10px; } .row > * { flex:1; min-width:0; }
+  .sep { border:none; border-top:1px dashed var(--bd); margin:18px 0 6px; }
+
+  /* ---------- Tablas ---------- */
+  .scroll { overflow-x:auto; -webkit-overflow-scrolling:touch; border-radius:10px; }
   table { width:100%; border-collapse:collapse; font-size:14px; }
-  th, td { text-align:left; padding:8px 6px; border-bottom:1px solid var(--bd); vertical-align:top; }
-  th { color:#fff; background:var(--pri); font-weight:600; font-size:12px; text-transform:uppercase; }
+  th, td { text-align:left; padding:10px 8px; border-bottom:1px solid var(--bd); vertical-align:top; }
+  th { color:#fff; background:var(--pri); font-weight:600; font-size:12px; text-transform:uppercase; letter-spacing:.3px; white-space:nowrap; }
   tbody tr:nth-child(even) { background:var(--soft); }
-  td.n, th.n { text-align:right; }
-  .tag { display:inline-block; padding:2px 8px; border-radius:99px; font-size:12px; font-weight:600; }
+  td.n, th.n { text-align:right; white-space:nowrap; }
+  .v { display:block; }
+  .tag { display:inline-block; padding:2px 9px; border-radius:99px; font-size:12px; font-weight:600; white-space:nowrap; }
   .t-ok { background:#e6f4ea; color:var(--ok); }
   .t-low { background:#fff3d6; color:var(--warn); }
   .t-out { background:var(--pri); color:#fff; }
-  #totales { margin-top:10px; padding:10px 12px; background:var(--soft); border-radius:8px; font-size:14px; }
-  #totales div { display:flex; justify-content:space-between; padding:2px 0; }
-  #totales .total { font-weight:700; color:var(--pri); border-top:1px solid var(--bd); margin-top:4px; padding-top:6px; font-size:16px; }
-  #msg { padding:10px 12px; border-radius:8px; margin-top:12px; display:none; font-size:14px; }
-  #msg.ok { display:block; background:#e6f4ea; color:var(--ok); }
-  #msg.err { display:block; background:var(--soft); color:var(--pri-d); }
-  .scroll { overflow-x:auto; }
+  .small { color:var(--mut); font-size:12px; display:block; margin-top:2px; }
   .mut { color:var(--mut); font-size:13px; }
-  .small { color:var(--mut); font-size:12px; display:block; }
+
+  /* ---------- Totales y mensajes ---------- */
+  #totales { margin-top:14px; padding:12px 14px; background:var(--soft); border:1px solid var(--bd); border-radius:10px; font-size:14px; }
+  #totales div { display:flex; justify-content:space-between; padding:2px 0; }
+  #totales .total { font-weight:700; color:var(--pri); border-top:1px solid var(--bd); margin-top:6px; padding-top:8px; font-size:18px; }
+  #msg { padding:12px 14px; border-radius:10px; margin-top:12px; display:none; font-size:14px; }
+  #msg.ok { display:block; background:#e6f4ea; color:var(--ok); }
+  #msg.err { display:block; background:var(--soft); color:var(--pri-d); border:1px solid var(--bd); }
+
+  /* ---------- Teléfono ---------- */
+  @media (max-width:640px) {
+    header { padding:10px 14px; padding-top:calc(10px + env(safe-area-inset-top)); }
+    .brand { font-size:16px; }
+    .logo { height:36px; }
+    main { padding:12px; gap:12px; }
+    .card { padding:14px; }
+
+    /* Las ventas se muestran como tarjetas */
+    #tblVentas thead { display:none; }
+    #tblVentas, #tblVentas tbody { display:block; }
+    #tblVentas tr { display:block; background:#fff; border:1px solid var(--bd); border-left:4px solid var(--pri); border-radius:12px; padding:6px 12px; margin-bottom:10px; }
+    #tblVentas tbody tr:nth-child(even) { background:#fff; }
+    #tblVentas td { display:flex; justify-content:space-between; align-items:flex-start; gap:14px; border:none; border-bottom:1px solid var(--soft); padding:7px 0; text-align:right; white-space:normal; }
+    #tblVentas td:last-child { border-bottom:none; }
+    #tblVentas td::before { content:attr(data-label); font-weight:600; font-size:12px; color:var(--mut); text-transform:uppercase; text-align:left; flex:0 0 auto; padding-top:2px; }
+    #tblVentas td .v { text-align:right; }
+    #tblVentas td.empty { display:block; text-align:center; }
+    #tblVentas td.empty::before { content:none; }
+  }
 </style>
 </head>
 <body>
@@ -80,6 +122,7 @@
       <table id="tblCarrito"><thead><tr><th>Producto</th><th class="n">Cant.</th><th class="n">Monto</th><th></th></tr></thead><tbody></tbody></table>
     </div>
 
+    <hr class="sep">
     <label>Cliente (opcional)</label>
     <input id="inCliente" type="text" placeholder="Nombre del cliente">
 
@@ -115,7 +158,7 @@
     <div id="msg"></div>
   </section>
 
-  <section class="card">
+  <section class="card sticky">
     <h2>Inventario actual</h2>
     <div class="scroll">
       <table id="tblInv"><thead><tr><th>Producto</th><th class="n">Stock</th><th>Estado</th></tr></thead><tbody></tbody></table>
@@ -194,15 +237,15 @@ function pintarVentas(ventas) {
     const dir = v.direccion ? `<span class="small">${esc(v.direccion)}</span>` : '';
     const estadoCls = v.estadoPago === 'Pendiente' ? 't-low' : 't-ok';
     return `<tr>
-      <td>${fecha}</td>
-      <td>${esc(v.producto)}</td>
-      <td class="n">${esc(v.cantidad)}</td>
-      <td class="n">${q(v.monto)}</td>
-      <td class="n">${envio}</td>
-      <td>${esc(v.cliente)}${dir}</td>
-      <td>${esc(v.metodoPago)}<span class="small"><span class="tag ${estadoCls}">${esc(v.estadoPago)}</span></span></td>
+      <td data-label="Fecha"><span class="v">${fecha}</span></td>
+      <td data-label="Producto"><span class="v">${esc(v.producto)}</span></td>
+      <td class="n" data-label="Cantidad"><span class="v">${esc(v.cantidad)}</span></td>
+      <td class="n" data-label="Monto"><span class="v">${q(v.monto)}</span></td>
+      <td class="n" data-label="Envío"><span class="v">${envio || '—'}</span></td>
+      <td data-label="Cliente"><span class="v">${esc(v.cliente) || '—'}${dir}</span></td>
+      <td data-label="Pago"><span class="v">${esc(v.metodoPago)}<span class="small"><span class="tag ${estadoCls}">${esc(v.estadoPago)}</span></span></span></td>
     </tr>`;
-  }).join('') || '<tr><td colspan="7" class="mut">Aún no hay ventas registradas.</td></tr>';
+  }).join('') || '<tr><td colspan="7" class="mut empty">Aún no hay ventas registradas.</td></tr>';
 }
 
 function agregarLinea() {
